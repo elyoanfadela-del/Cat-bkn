@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CAT BKN FULL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial; margin:10px; text-align:center;}
+.timer { color:red; font-size:20px;}
+button { margin:5px; padding:10px; width:90%;}
+.shape { width:50px; height:50px; display:inline-block; margin:5px;}
+.circle { border-radius:50%; background:black;}
+.square { background:black;}
+.triangle {
+width:0; height:0;
+border-left:25px solid transparent;
+border-right:25px solid transparent;
+border-bottom:50px solid black;
+}
+.cube {
+width:60px; height:60px;
+background:linear-gradient(45deg,#999,#333);
+transform:rotateX(25deg) rotateY(25deg);
+margin:auto;
+}
+</style>
+</head>
+
+<body>
+
+<h3 id="judul"></h3>
+<div class="timer" id="timer">07:00</div>
+
+<div id="soal"></div>
+<div id="opsi"></div>
+
+<button onclick="next()">Next</button>
+
+<script>
+
+const config = [
+{nama:"Bahasa", jumlah:50},
+{nama:"Hitungan", jumlah:31},
+{nama:"Pengetahuan Umum", jumlah:40},
+{nama:"Pola Gambar", jumlah:55},
+{nama:"Abstrak Ruang", jumlah:27},
+{nama:"Bentuk", jumlah:25}
+];
+
+function gen(sub){
+let arr=[];
+for(let i=0;i<config[sub].jumlah;i++){
+
+if(sub===0){
+arr.push(["Sinonim 'besar' ?",["Kecil","Agung","Pendek","Tipis"],"B"]);
+}
+
+else if(sub===1){
+let a=Math.floor(Math.random()*20);
+let b=Math.floor(Math.random()*20);
+arr.push([`${a}+${b}=?`,[a+b-1,a+b,a+b+1,a+b+2].map(String),"B"]);
+}
+
+else if(sub===2){
+arr.push(["Ibukota Indonesia?",["Bandung","Jakarta","Surabaya","Medan"],"B"]);
+}
+
+else if(sub===3){
+arr.push([
+"<div class='shape square'></div><div class='shape circle'></div><div class='shape square'></div> ?",
+["square","circle","triangle","cube"],"B"
+]);
+}
+
+else if(sub===4){
+arr.push([
+"<div class='cube'></div><br>Kubus diputar, sisi tetap?",
+["Depan","Belakang","Semua","Tidak ada"],"C"
+]);
+}
+
+else if(sub===5){
+arr.push([
+"Pilih bentuk segitiga:",
+["circle","square","triangle","cube"],"C"
+]);
+}
+
+}
+return arr;
+}
+
+let sub=0, q=0, time=420;
+let data=config.map((_,i)=>gen(i));
+let benar=0;
+
+function load(){
+document.getElementById("judul").innerText =
+"Subtes "+(sub+1)+" - "+config[sub].nama+" ("+(q+1)+"/"+config[sub].jumlah+")";
+
+let soal=data[sub][q];
+document.getElementById("soal").innerHTML=soal[0];
+
+let html="";
+soal[1].forEach((o,i)=>{
+let h=String.fromCharCode(65+i);
+
+let visual=o;
+if(["square","circle","triangle","cube"].includes(o)){
+visual = `<div class='shape ${o}'></div>`;
+}
+
+html+=`<button onclick="jawab('${h}')">${h}. ${visual}</button>`;
+});
+
+document.getElementById("opsi").innerHTML=html;
+}
+
+function jawab(h){
+if(data[sub][q][2]===h) benar++;
+}
+
+function next(){
+q++;
+if(q>=config[sub].jumlah){
+sub++;
+q=0;
+time=420;
+
+if(sub>=config.length){
+finish();
+return;
+}
+}
+load();
+}
+
+function finish(){
+let status = benar >= 110 ? "LULUS" : "TIDAK LULUS";
+
+alert(
+"=== HASIL TES ===\n\n"+
+"Benar: "+benar+"\n"+
+"Passing Grade: 110\n"+
+"Status: "+status
+);
+}
+
+setInterval(()=>{
+time--;
+let m=Math.floor(time/60), s=time%60;
+document.getElementById("timer").innerText =
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+
+if(time<=0){
+sub++;
+q=0;
+time=420;
+
+if(sub>=config.length) finish();
+else load();
+}
+},1000);
+
+load();
+
+</script>
+
+</body>
+</html>
