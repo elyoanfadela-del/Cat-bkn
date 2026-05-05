@@ -2,237 +2,165 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CAT BKN FULL</title>
+<title>CAT BKN SIMULATOR</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{font-family:Arial;padding:10px}
-h2{text-align:center}
-.timer{color:red;font-size:22px;text-align:center}
-button{width:100%;padding:10px;margin:5px;font-size:16px}
-#soal{text-align:center;margin:15px}
+body {font-family:Arial; text-align:center; margin:10px;}
+.timer {color:red; font-size:22px;}
+button {width:100%; padding:10px; margin:5px; font-size:16px;}
+.hidden {display:none;}
 </style>
-
 </head>
 
 <body>
 
-<h2 id="judul"></h2>
+<h2 id="title">CAT BKN SIMULATOR</h2>
 <div class="timer" id="timer"></div>
-<div id="soal"></div>
-<div id="opsi"></div>
-<button onclick="next()">Next</button>
+<div id="question"></div>
+<div id="answers"></div>
+<button onclick="nextQuestion()">Next</button>
 
 <script>
+let subtestIndex = 0;
+let currentQuestion = 0;
+let score = 0;
+let wrong = 0;
+let timer;
+let timeLeft = 420;
 
-// ================= CONFIG =================
-const config=[
-{nama:"Bahasa",jumlah:50},
-{nama:"Hitungan",jumlah:31},
-{nama:"Pengetahuan Umum",jumlah:40},
-{nama:"Pola Gambar",jumlah:55},
-{nama:"Abstrak Ruang",jumlah:27},
-{nama:"Bentuk",jumlah:25}
+const subtests = [
+
+{
+name:"Bahasa",
+questions: Array.from({length:50}, (_,i)=>({
+q:"Sinonim kata ke-"+(i+1)+"?",
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}))
+},
+
+{
+name:"Hitungan",
+questions: Array.from({length:31}, (_,i)=>({
+q:(i+2)+" + "+(i+3)+" = ?",
+a:[i+5,i+6,i+7,i+8],
+correct:0
+}))
+},
+
+{
+name:"Pengetahuan Umum",
+questions: Array.from({length:40}, (_,i)=>({
+q:"Ibukota negara ke-"+(i+1)+"?",
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}))
+},
+
+{
+name:"Pola Gambar",
+questions: Array.from({length:55}, (_,i)=>({
+q:"Pola gambar ke-"+(i+1),
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}))
+},
+
+{
+name:"Abstrak Ruang",
+questions: Array.from({length:27}, (_,i)=>({
+q:"Kubus diputar ke-"+(i+1),
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}))
+},
+
+{
+name:"Bentuk",
+questions: Array.from({length:25}, (_,i)=>({
+q:"Bentuk ke-"+(i+1),
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}))
+}
+
 ];
 
-// ================= UTIL =================
-function shuffle(a){return a.sort(()=>Math.random()-0.5);}
-function pickUnique(arr,n){
-let set=new Set(),res=[];
-while(res.length<n){
-let r=arr[Math.floor(Math.random()*arr.length)];
-let k=JSON.stringify(r);
-if(!set.has(k)){set.add(k);res.push(r);}
-}
-return res;
-}
-
-// ================= BAHASA =================
-function genBahasa(n){
-let bank=[];
-const sinonim={besar:["agung","luas"],cepat:["sigap","gesit"],cerdas:["pintar","pandai"]};
-const antonim={besar:["kecil"],cepat:["lambat"],tinggi:["rendah"]};
-
-for(let i=0;i<400;i++){
-let tipe=Math.random()<0.5?"Sinonim":"Antonim";
-let obj=tipe==="Sinonim"?sinonim:antonim;
-
-let keys=Object.keys(obj);
-let k=keys[Math.floor(Math.random()*keys.length)];
-let benar=obj[k][0];
-
-let opsi=new Set([benar]);
-let all=["besar","kecil","tinggi","rendah","cepat","lambat"];
-while(opsi.size<4){opsi.add(all[Math.floor(Math.random()*all.length)])}
-
-opsi=[...opsi]; opsi=shuffle(opsi);
-
-bank.push([`${tipe} dari '${k}' ?`,opsi,opsi.indexOf(benar)]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= HITUNG =================
-function genHitung(n){
-let bank=[];
-for(let i=0;i<400;i++){
-let a=Math.floor(Math.random()*50);
-let b=Math.floor(Math.random()*50);
-let benar=a+b;
-
-let opsi=[benar,benar+1,benar-1,benar+2].map(String);
-opsi=shuffle(opsi);
-
-bank.push([`${a}+${b}=?`,opsi,opsi.indexOf(String(benar))]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= UMUM =================
-function genUmum(n){
-let bank=[];
-const data=[
-["Ibukota Indonesia","Jakarta"],
-["Planet terbesar","Jupiter"],
-["Benua terbesar","Asia"]
-];
-
-for(let i=0;i<200;i++){
-let d=data[Math.floor(Math.random()*data.length)];
-
-let opsi=[d[1],"A","B","C"];
-opsi=shuffle(opsi);
-
-bank.push([d[0]+" ?",opsi,opsi.indexOf(d[1])]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= POLA =================
-function genPola(n){
-let bank=[];
-const cerita=[
-["😴","🚿","🍞","🏃"],
-["🌱","💧","🌿","🌾"],
-["🛒","🍳","🍽️","😋"]
-];
-
-for(let i=0;i<300;i++){
-let c=cerita[Math.floor(Math.random()*cerita.length)];
-let acak=shuffle([...c]);
-let benar=c.join("");
-
-let opsi=[
-benar,
-shuffle([...c]).join(""),
-shuffle([...c]).join(""),
-shuffle([...c]).join("")
-];
-
-opsi=shuffle(opsi);
-
-bank.push([
-"Susun urutan:<br>"+acak.join(" ➜ "),
-opsi,
-opsi.indexOf(benar)
-]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= RUANG =================
-function genRuang(n){
-let bank=[];
-for(let i=0;i<100;i++){
-let opsi=["4","6","8","12"];
-bank.push([
-"<div style='width:60px;height:60px;background:linear-gradient(45deg,#aaa,#333);margin:auto'></div><br>Sisi kubus?",
-opsi,
-1
-]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= BENTUK =================
-function genBentuk(n){
-let bank=[];
-for(let i=0;i<100;i++){
-let opsi=["Lingkaran","Segitiga","Persegi","Kubus"];
-opsi=shuffle(opsi);
-
-bank.push([
-"Bentuk dengan 3 sisi?",
-opsi,
-opsi.indexOf("Segitiga")
-]);
-}
-return pickUnique(bank,n);
-}
-
-// ================= INIT =================
-let data=[
-genBahasa(50),
-genHitung(31),
-genUmum(40),
-genPola(55),
-genRuang(27),
-genBentuk(25)
-];
-
-let sub=0,q=0,time=420,benar=0;
-
-// ================= LOAD =================
-function load(){
-document.getElementById("judul").innerText=
-config[sub].nama+" ("+(q+1)+"/"+config[sub].jumlah+")";
-
-let soal=data[sub][q];
-document.getElementById("soal").innerHTML=soal[0];
-
-let html="";
-soal[1].forEach((o,i)=>{
-html+=`<button onclick="jawab(${i})">${String.fromCharCode(65+i)}. ${o}</button>`;
+// SHUFFLE
+subtests.forEach(s=>{
+s.questions.sort(()=>Math.random()-0.5);
 });
-document.getElementById("opsi").innerHTML=html;
-}
 
-// ================= JAWAB =================
-function jawab(i){
-if(i===data[sub][q][2]) benar++;
-}
+function startTimer(){
+timeLeft = 420;
+timer = setInterval(()=>{
+let m = Math.floor(timeLeft/60);
+let s = timeLeft%60;
+document.getElementById("timer").innerHTML =
+(m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+timeLeft--;
 
-// ================= NEXT =================
-function next(){
-q++;
-if(q>=config[sub].jumlah){
-sub++; q=0; time=420;
-if(sub>=config.length){finish();return;}
-}
-load();
-}
-
-// ================= FINISH =================
-function finish(){
-let status=benar>=110?"LULUS":"TIDAK LULUS";
-alert("Benar: "+benar+"\nStatus: "+status);
-}
-
-// ================= TIMER =================
-setInterval(()=>{
-time--;
-let m=Math.floor(time/60),s=time%60;
-document.getElementById("timer").innerText=
-String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-
-if(time<=0){
-sub++; q=0; time=420;
-if(sub>=config.length) finish();
-else load();
+if(timeLeft<0){
+clearInterval(timer);
+nextSubtest();
 }
 },1000);
+}
 
-load();
+function loadQuestion(){
+let sub = subtests[subtestIndex];
+let q = sub.questions[currentQuestion];
+
+document.getElementById("title").innerHTML =
+"Subtes "+(subtestIndex+1)+" - "+sub.name+
+" ("+(currentQuestion+1)+"/"+sub.questions.length+")";
+
+document.getElementById("question").innerHTML = q.q;
+
+let html="";
+q.a.forEach((opt,i)=>{
+html+=`<button onclick="answer(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`;
+});
+
+document.getElementById("answers").innerHTML = html;
+}
+
+function answer(i){
+let q = subtests[subtestIndex].questions[currentQuestion];
+if(i===q.correct) score++;
+else wrong++;
+nextQuestion();
+}
+
+function nextQuestion(){
+currentQuestion++;
+if(currentQuestion < subtests[subtestIndex].questions.length){
+loadQuestion();
+}else{
+nextSubtest();
+}
+}
+
+function nextSubtest(){
+clearInterval(timer);
+subtestIndex++;
+
+if(subtestIndex < subtests.length){
+currentQuestion=0;
+startTimer();
+loadQuestion();
+}else{
+document.body.innerHTML =
+"<h2>SELESAI</h2>"+
+"<p>Benar: "+score+"</p>"+
+"<p>Salah: "+wrong+"</p>";
+}
+}
+
+// START
+startTimer();
+loadQuestion();
 
 </script>
 
