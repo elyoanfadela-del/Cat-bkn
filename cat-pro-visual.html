@@ -2,159 +2,189 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CAT BKN SIMULATOR</title>
+<title>CAT BKN PRO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body {font-family:Arial; text-align:center; margin:10px;}
-.timer {color:red; font-size:22px;}
-button {width:100%; padding:10px; margin:5px; font-size:16px;}
-.hidden {display:none;}
+body{font-family:Arial;text-align:center;margin:10px;}
+.timer{color:red;font-size:22px;}
+button{width:100%;padding:10px;margin:5px;font-size:16px;}
 </style>
 </head>
 
 <body>
 
-<h2 id="title">CAT BKN SIMULATOR</h2>
+<h2 id="title"></h2>
 <div class="timer" id="timer"></div>
 <div id="question"></div>
 <div id="answers"></div>
-<button onclick="nextQuestion()">Next</button>
 
 <script>
-let subtestIndex = 0;
-let currentQuestion = 0;
-let score = 0;
-let wrong = 0;
-let timer;
-let timeLeft = 420;
 
-const subtests = [
+let subtestIndex=0;
+let currentQuestion=0;
+let score=0, wrong=0;
+let timeLeft=420, timer;
 
-{
-name:"Bahasa",
-questions: Array.from({length:50}, (_,i)=>({
-q:"Sinonim kata ke-"+(i+1)+"?",
-a:["A","B","C","D"],
-correct:Math.floor(Math.random()*4)
-}))
-},
+// ===== GENERATOR =====
 
-{
-name:"Hitungan",
-questions: Array.from({length:31}, (_,i)=>({
-q:(i+2)+" + "+(i+3)+" = ?",
-a:[i+5,i+6,i+7,i+8],
-correct:0
-}))
-},
+// RANDOM PILIHAN
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
 
-{
-name:"Pengetahuan Umum",
-questions: Array.from({length:40}, (_,i)=>({
-q:"Ibukota negara ke-"+(i+1)+"?",
-a:["A","B","C","D"],
-correct:Math.floor(Math.random()*4)
-}))
-},
-
-{
-name:"Pola Gambar",
-questions: Array.from({length:55}, (_,i)=>({
-q:"Pola gambar ke-"+(i+1),
-a:["A","B","C","D"],
-correct:Math.floor(Math.random()*4)
-}))
-},
-
-{
-name:"Abstrak Ruang",
-questions: Array.from({length:27}, (_,i)=>({
-q:"Kubus diputar ke-"+(i+1),
-a:["A","B","C","D"],
-correct:Math.floor(Math.random()*4)
-}))
-},
-
-{
-name:"Bentuk",
-questions: Array.from({length:25}, (_,i)=>({
-q:"Bentuk ke-"+(i+1),
-a:["A","B","C","D"],
-correct:Math.floor(Math.random()*4)
-}))
+// BAHASA
+function genBahasa(n){
+const data=[
+["besar","agung"],["cepat","lambat"],["indah","cantik"],
+["tinggi","rendah"],["kuat","lemah"],["rajin","giat"],
+["panas","dingin"],["luas","sempit"],["keras","lunak"]
+];
+return Array.from({length:n},(_,i)=>{
+let d=data[i%data.length];
+let ops=shuffle([d[1],"opsi1","opsi2","opsi3"]);
+return {q:`Sinonim '${d[0]}'?`,a:ops,correct:ops.indexOf(d[1])};
+});
 }
 
+// HITUNGAN (VARIASI 🔥)
+function genHitungan(n){
+return Array.from({length:n},(_,i)=>{
+let type=i%4;
+
+// penjumlahan
+if(type===0){
+let a=10+i, b=5+i;
+return {q:`${a} + ${b} = ?`,a:shuffle([a+b,a+b+1,a+b-1,a+b+2]),correct:0};
+}
+
+// persen
+if(type===1){
+let a=100+i*5;
+return {q:`25% dari ${a}?`,a:shuffle([a*0.25,a*0.3,a*0.2,a*0.5]),correct:0};
+}
+
+// deret
+if(type===2){
+return {q:`2,4,6,8,...?`,a:[10,12,14,16],correct:0};
+}
+
+// soal cerita
+return {
+q:`Ani punya ${10+i} apel, dimakan 3. Sisa?`,
+a:shuffle([7+i,6+i,5+i,8+i]),
+correct:0
+};
+
+});
+}
+
+// PENGETAHUAN
+function genPU(n){
+const data=[
+["Ibukota Indonesia","Jakarta"],
+["Planet terbesar","Jupiter"],
+["Benua terbesar","Asia"],
+["Presiden pertama RI","Soekarno"]
+];
+return Array.from({length:n},(_,i)=>{
+let d=data[i%data.length];
+let ops=shuffle([d[1],"opsi1","opsi2","opsi3"]);
+return {q:d[0]+"?",a:ops,correct:ops.indexOf(d[1])};
+});
+}
+
+// POLA
+function genPola(n){
+return Array.from({length:n},(_,i)=>({
+q:`Pola gambar ke-${i+1} (lanjutan)?`,
+a:["A","B","C","D"],
+correct:Math.floor(Math.random()*4)
+}));
+}
+
+// ABSTRAK (KUBUS)
+function genRuang(n){
+return Array.from({length:n},(_,i)=>({
+q:`Kubus diputar ${i+1} kali, sisi mana terlihat?`,
+a:["Depan","Belakang","Kiri","Kanan"],
+correct:Math.floor(Math.random()*4)
+}));
+}
+
+// BENTUK
+function genBentuk(n){
+return Array.from({length:n},(_,i)=>({
+q:`Bentuk berbeda ke-${i+1}?`,
+a:["Lingkaran","Persegi","Segitiga","Unik"],
+correct:3
+}));
+}
+
+// ===== SUBTES =====
+const subtests=[
+{name:"Bahasa",questions:genBahasa(50)},
+{name:"Hitungan",questions:genHitungan(31)},
+{name:"Pengetahuan Umum",questions:genPU(40)},
+{name:"Pola Gambar",questions:genPola(55)},
+{name:"Abstrak Ruang",questions:genRuang(27)},
+{name:"Bentuk",questions:genBentuk(25)}
 ];
 
-// SHUFFLE
-subtests.forEach(s=>{
-s.questions.sort(()=>Math.random()-0.5);
-});
-
+// ===== TIMER =====
 function startTimer(){
-timeLeft = 420;
-timer = setInterval(()=>{
-let m = Math.floor(timeLeft/60);
-let s = timeLeft%60;
-document.getElementById("timer").innerHTML =
+timeLeft=420;
+timer=setInterval(()=>{
+let m=Math.floor(timeLeft/60);
+let s=timeLeft%60;
+document.getElementById("timer").innerHTML=
 (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
 timeLeft--;
-
-if(timeLeft<0){
-clearInterval(timer);
-nextSubtest();
-}
+if(timeLeft<0){clearInterval(timer);nextSubtest();}
 },1000);
 }
 
+// ===== LOAD =====
 function loadQuestion(){
-let sub = subtests[subtestIndex];
-let q = sub.questions[currentQuestion];
+let sub=subtests[subtestIndex];
+let q=sub.questions[currentQuestion];
 
-document.getElementById("title").innerHTML =
-"Subtes "+(subtestIndex+1)+" - "+sub.name+
-" ("+(currentQuestion+1)+"/"+sub.questions.length+")";
+document.getElementById("title").innerHTML=
+`Subtes ${subtestIndex+1} - ${sub.name} (${currentQuestion+1}/${sub.questions.length})`;
 
-document.getElementById("question").innerHTML = q.q;
+document.getElementById("question").innerHTML=q.q;
 
 let html="";
-q.a.forEach((opt,i)=>{
-html+=`<button onclick="answer(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`;
+q.a.forEach((o,i)=>{
+html+=`<button onclick="answer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`;
 });
 
-document.getElementById("answers").innerHTML = html;
+document.getElementById("answers").innerHTML=html;
 }
 
+// ===== JAWAB =====
 function answer(i){
-let q = subtests[subtestIndex].questions[currentQuestion];
-if(i===q.correct) score++;
-else wrong++;
+let q=subtests[subtestIndex].questions[currentQuestion];
+if(i===q.correct)score++; else wrong++;
 nextQuestion();
 }
 
 function nextQuestion(){
 currentQuestion++;
-if(currentQuestion < subtests[subtestIndex].questions.length){
+if(currentQuestion<subtests[subtestIndex].questions.length){
 loadQuestion();
-}else{
-nextSubtest();
-}
+}else nextSubtest();
 }
 
 function nextSubtest(){
 clearInterval(timer);
 subtestIndex++;
-
-if(subtestIndex < subtests.length){
+if(subtestIndex<subtests.length){
 currentQuestion=0;
 startTimer();
 loadQuestion();
 }else{
-document.body.innerHTML =
-"<h2>SELESAI</h2>"+
-"<p>Benar: "+score+"</p>"+
-"<p>Salah: "+wrong+"</p>";
+document.body.innerHTML=
+`<h2>SELESAI</h2>
+<p>Benar: ${score}</p>
+<p>Salah: ${wrong}</p>`;
 }
 }
 
