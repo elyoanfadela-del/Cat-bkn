@@ -1,45 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-<meta charset="UTF-8">
-<title>CAT BKN FULL</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body { font-family: Arial; margin:10px; text-align:center;}
-.timer { color:red; font-size:20px;}
-button { margin:5px; padding:10px; width:90%;}
-.shape { width:50px; height:50px; display:inline-block; margin:5px;}
-.circle { border-radius:50%; background:black;}
-.square { background:black;}
-.triangle {
-width:0; height:0;
-border-left:25px solid transparent;
-border-right:25px solid transparent;
-border-bottom:50px solid black;
-}
-.cube {
-width:60px; height:60px;
-background:linear-gradient(45deg,#999,#333);
-transform:rotateX(25deg) rotateY(25deg);
-margin:auto;
-}
-</style>
-</head>
-
-<body>
-
-<h3 id="judul"></h3>
-<div class="timer" id="timer">07:00</div>
-
-<div id="soal"></div>
-<div id="opsi"></div>
-
-<button onclick="next()">Next</button>
-
 <script>
 
+// CONFIG
 const config = [
 {nama:"Bahasa", jumlah:50},
 {nama:"Hitungan", jumlah:31},
@@ -49,56 +10,229 @@ const config = [
 {nama:"Bentuk", jumlah:25}
 ];
 
-function gen(sub){
-let arr=[];
-for(let i=0;i<config[sub].jumlah;i++){
-
-if(sub===0){
-arr.push(["Sinonim 'besar' ?",["Kecil","Agung","Pendek","Tipis"],"B"]);
+// UTIL
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
+function pickUnique(arr,n){
+return shuffle(arr).slice(0,n);
 }
 
-else if(sub===1){
-let a=Math.floor(Math.random()*20);
-let b=Math.floor(Math.random()*20);
-arr.push([`${a}+${b}=?`,[a+b-1,a+b,a+b+1,a+b+2].map(String),"B"]);
-}
+// ================= BAHASA =================
+function genBahasa(n){
+let bank=[];
 
-else if(sub===2){
-arr.push(["Ibukota Indonesia?",["Bandung","Jakarta","Surabaya","Medan"],"B"]);
-}
+const sinonim = [
+["besar","agung"],["cepat","sigap"],["cerdas","pintar"],
+["indah","elok"],["kuat","kokoh"],["dingin","sejuk"],
+["ramai","hiruk"],["tajam","runcing"],["baik","bagus"],
+["ringan","enteng"]
+];
 
-else if(sub===3){
-arr.push([
-"<div class='shape square'></div><div class='shape circle'></div><div class='shape square'></div> ?",
-["square","circle","triangle","cube"],"B"
+const antonim = [
+["besar","kecil"],["cepat","lambat"],["tinggi","rendah"],
+["panas","dingin"],["kuat","lemah"],["terang","gelap"],
+["ramai","sepi"],["tajam","tumpul"],["baik","buruk"],
+["panjang","pendek"]
+];
+
+sinonim.forEach(s=>{
+bank.push([`Sinonim '${s[0]}' ?`, shuffle([s[1],"acak1","acak2","acak3"]),"A"]);
+});
+
+antonim.forEach(a=>{
+bank.push([`Antonim '${a[0]}' ?`, shuffle([a[1],"acak1","acak2","acak3"]),"A"]);
+});
+
+// tambah variasi kalimat
+for(let i=0;i<50;i++){
+bank.push([
+"Kata yang tepat untuk 'anak ... belajar' ?",
+shuffle(["sedang","akan","telah","ingin"]),
+"A"
 ]);
 }
 
-else if(sub===4){
-arr.push([
-"<div class='cube'></div><br>Kubus diputar, sisi tetap?",
-["Depan","Belakang","Semua","Tidak ada"],"C"
+return pickUnique(bank,n);
+}
+
+// ================= HITUNGAN =================
+function genHitung(n){
+let bank=[];
+for(let i=0;i<200;i++){
+let a=Math.floor(Math.random()*50);
+let b=Math.floor(Math.random()*50);
+let c=a+b;
+bank.push([
+`${a} + ${b} = ?`,
+shuffle([c,c+1,c-1,c+2].map(String)),
+"A"
+]);
+}
+return pickUnique(bank,n);
+}
+
+// ================= PENGETAHUAN =================
+function genUmum(n){
+let bank=[
+["Ibukota Indonesia?","Jakarta"],
+["Planet terbesar?","Jupiter"],
+["Presiden pertama?","Soekarno"],
+["Benua terbesar?","Asia"],
+["Air rumusnya?","H2O"],
+["Gunung tertinggi?","Everest"],
+["Laut terbesar?","Pasifik"],
+["Negara maju?","Jepang"],
+["Mata uang Jepang?","Yen"],
+["Benua Afrika di?","Selatan"]
+];
+
+let soal=[];
+for(let i=0;i<bank.length;i++){
+let b=bank[i];
+soal.push([
+b[0],
+shuffle([b[1],"opsi1","opsi2","opsi3"]),
+"A"
 ]);
 }
 
-else if(sub===5){
-arr.push([
+// tambah variasi random
+for(let i=0;i<100;i++){
+soal.push([
+"Ibu kota provinsi Jawa Barat?",
+shuffle(["Bandung","Bekasi","Bogor","Cirebon"]),
+"A"
+]);
+}
+
+return pickUnique(soal,n);
+}
+
+// ================= POLA VISUAL =================
+function genPola(n){
+
+let bank=[];
+
+// Template urutan kegiatan
+const cerita = [
+["Bangun tidur","Mandi","Sarapan","Berangkat"],
+["Menanam","Menyiram","Tumbuh","Panen"],
+["Beli bahan","Memasak","Menyajikan","Makan"],
+["Pakai sepatu","Keluar rumah","Naik kendaraan","Sampai tujuan"],
+["Belajar","Ujian","Lulus","Wisuda"]
+];
+
+// Visual emoji (sebagai animasi sederhana)
+const visual = {
+"Bangun tidur":"😴➡️🙂",
+"Mandi":"🚿",
+"Sarapan":"🍞",
+"Berangkat":"🏃",
+
+"Menanam":"🌱",
+"Menyiram":"💧",
+"Tumbuh":"🌿",
+"Panen":"🌾",
+
+"Beli bahan":"🛒",
+"Memasak":"🍳",
+"Menyajikan":"🍽️",
+"Makan":"😋",
+
+"Pakai sepatu":"👟",
+"Keluar rumah":"🚪",
+"Naik kendaraan":"🚌",
+"Sampai tujuan":"🏁",
+
+"Belajar":"📚",
+"Ujian":"📝",
+"Lulus":"🎓",
+"Wisuda":"🎉"
+};
+
+// Generator soal
+for(let i=0;i<200;i++){
+
+let c = cerita[i % cerita.length];
+
+// acak urutan
+let acak = shuffle([...c]);
+
+// jawaban benar = urutan asli
+let benar = c.join("-");
+
+// opsi (buat 4 kemungkinan)
+let opsi = [
+acak.join("-"),
+shuffle([...c]).join("-"),
+shuffle([...c]).join("-"),
+benar
+];
+
+// acak opsi
+opsi = shuffle(opsi);
+
+// soal tampilan
+let tampil = acak.map(x=>visual[x]).join(" ➜ ");
+
+bank.push([
+`Susun urutan yang benar:<br><br>${tampil}`,
+opsi,
+opsi.indexOf(benar)
+]);
+
+}
+
+// ambil unik
+return pickUnique(bank,n);
+
+}
+
+// ================= KUBUS 3D =================
+function genRuang(n){
+let bank=[];
+
+for(let i=0;i<100;i++){
+bank.push([
+"<div style='width:60px;height:60px;background:linear-gradient(45deg,#aaa,#333);transform:rotateX(30deg) rotateY(30deg);margin:auto'></div><br>Jumlah sisi kubus?",
+["4","6","8","12"],
+"B"
+]);
+}
+
+return pickUnique(bank,n);
+}
+
+// ================= BENTUK =================
+function genBentuk(n){
+let bank=[];
+
+for(let i=0;i<100;i++){
+bank.push([
 "Pilih bentuk segitiga:",
-["circle","square","triangle","cube"],"C"
+["circle","square","triangle","cube"],
+"C"
 ]);
 }
 
-}
-return arr;
+return pickUnique(bank,n);
 }
 
-let sub=0, q=0, time=420;
-let data=config.map((_,i)=>gen(i));
-let benar=0;
+// ================= INIT =================
+let data = [
+genBahasa(50),
+genHitung(31),
+genUmum(40),
+genPola(55),
+genRuang(27),
+genBentuk(25)
+];
 
+let sub=0,q=0,time=420,benar=0;
+
+// ================= LOAD =================
 function load(){
 document.getElementById("judul").innerText =
-"Subtes "+(sub+1)+" - "+config[sub].nama+" ("+(q+1)+"/"+config[sub].jumlah+")";
+config[sub].nama+" ("+(q+1)+"/"+config[sub].jumlah+")";
 
 let soal=data[sub][q];
 document.getElementById("soal").innerHTML=soal[0];
@@ -108,57 +242,46 @@ soal[1].forEach((o,i)=>{
 let h=String.fromCharCode(65+i);
 
 let visual=o;
-if(["square","circle","triangle","cube"].includes(o)){
+if(["circle","square","triangle","cube"].includes(o)){
 visual = `<div class='shape ${o}'></div>`;
 }
 
-html+=`<button onclick="jawab('${h}')">${h}. ${visual}</button>`;
+html+=`<button onclick="jawab('${h}','${soal[1][0]}')">${h}. ${visual}</button>`;
 });
 
 document.getElementById("opsi").innerHTML=html;
 }
 
-function jawab(h){
-if(data[sub][q][2]===h) benar++;
+// ================= JAWAB =================
+function jawab(h,benarText){
+if(data[sub][q][1][0]===benarText) benar++;
 }
 
+// ================= NEXT =================
 function next(){
 q++;
 if(q>=config[sub].jumlah){
-sub++;
-q=0;
-time=420;
-
-if(sub>=config.length){
-finish();
-return;
-}
+sub++; q=0; time=420;
+if(sub>=config.length){finish();return;}
 }
 load();
 }
 
+// ================= FINISH =================
 function finish(){
-let status = benar >= 110 ? "LULUS" : "TIDAK LULUS";
-
-alert(
-"=== HASIL TES ===\n\n"+
-"Benar: "+benar+"\n"+
-"Passing Grade: 110\n"+
-"Status: "+status
-);
+let status=benar>=110?"LULUS":"TIDAK LULUS";
+alert("Benar: "+benar+"\nStatus: "+status);
 }
 
+// ================= TIMER =================
 setInterval(()=>{
 time--;
-let m=Math.floor(time/60), s=time%60;
-document.getElementById("timer").innerText =
+let m=Math.floor(time/60),s=time%60;
+document.getElementById("timer").innerText=
 String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
 
 if(time<=0){
-sub++;
-q=0;
-time=420;
-
+sub++; q=0; time=420;
 if(sub>=config.length) finish();
 else load();
 }
@@ -167,10 +290,3 @@ else load();
 load();
 
 </script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-</script>
-</body>
-</html>
