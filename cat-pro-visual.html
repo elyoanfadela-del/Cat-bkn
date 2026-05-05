@@ -1,179 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CAT BKN FULL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Arial;padding:10px}
+h2{text-align:center}
+.timer{color:red;font-size:22px;text-align:center}
+button{width:100%;padding:10px;margin:5px;font-size:16px}
+#soal{text-align:center;margin:15px}
+</style>
+
+</head>
+
+<body>
+
+<h2 id="judul"></h2>
+<div class="timer" id="timer"></div>
+<div id="soal"></div>
+<div id="opsi"></div>
+<button onclick="next()">Next</button>
+
 <script>
 
 // ================= CONFIG =================
-const config = [
-{nama:"Bahasa", jumlah:50},
-{nama:"Hitungan", jumlah:31},
-{nama:"Pengetahuan Umum", jumlah:40},
-{nama:"Pola Gambar", jumlah:55},
-{nama:"Abstrak Ruang", jumlah:27},
-{nama:"Bentuk", jumlah:25}
+const config=[
+{nama:"Bahasa",jumlah:50},
+{nama:"Hitungan",jumlah:31},
+{nama:"Pengetahuan Umum",jumlah:40},
+{nama:"Pola Gambar",jumlah:55},
+{nama:"Abstrak Ruang",jumlah:27},
+{nama:"Bentuk",jumlah:25}
 ];
 
 // ================= UTIL =================
-function shuffle(a){ return a.sort(()=>Math.random()-0.5); }
-
+function shuffle(a){return a.sort(()=>Math.random()-0.5);}
 function pickUnique(arr,n){
-let set = new Set();
-let result=[];
-while(result.length<n){
-let item = arr[Math.floor(Math.random()*arr.length)];
-let key = JSON.stringify(item);
-if(!set.has(key)){
-set.add(key);
-result.push(item);
+let set=new Set(),res=[];
+while(res.length<n){
+let r=arr[Math.floor(Math.random()*arr.length)];
+let k=JSON.stringify(r);
+if(!set.has(k)){set.add(k);res.push(r);}
 }
-}
-return result;
+return res;
 }
 
 // ================= BAHASA =================
 function genBahasa(n){
 let bank=[];
+const sinonim={besar:["agung","luas"],cepat:["sigap","gesit"],cerdas:["pintar","pandai"]};
+const antonim={besar:["kecil"],cepat:["lambat"],tinggi:["rendah"]};
 
-const pasangan = [
-["besar","agung","kecil"],
-["cepat","sigap","lambat"],
-["cerdas","pintar","bodoh"],
-["tinggi","menjulang","rendah"],
-["panas","terik","dingin"],
-["kuat","kokoh","lemah"]
-];
+for(let i=0;i<400;i++){
+let tipe=Math.random()<0.5?"Sinonim":"Antonim";
+let obj=tipe==="Sinonim"?sinonim:antonim;
 
-for(let i=0;i<200;i++){
-let p = pasangan[i % pasangan.length];
-let tipe = i%2===0 ? "Sinonim" : "Antonim";
+let keys=Object.keys(obj);
+let k=keys[Math.floor(Math.random()*keys.length)];
+let benar=obj[k][0];
 
-let benar = tipe==="Sinonim"?p[1]:p[2];
-let opsi = shuffle([benar,"opsi1","opsi2","opsi3"]);
+let opsi=new Set([benar]);
+let all=["besar","kecil","tinggi","rendah","cepat","lambat"];
+while(opsi.size<4){opsi.add(all[Math.floor(Math.random()*all.length)])}
 
-bank.push([
-`${tipe} dari '${p[0]}' ?`,
-opsi,
-opsi.indexOf(benar)
-]);
+opsi=[...opsi]; opsi=shuffle(opsi);
+
+bank.push([`${tipe} dari '${k}' ?`,opsi,opsi.indexOf(benar)]);
 }
-
 return pickUnique(bank,n);
 }
 
 // ================= HITUNG =================
 function genHitung(n){
 let bank=[];
-
-for(let i=0;i<300;i++){
+for(let i=0;i<400;i++){
 let a=Math.floor(Math.random()*50);
 let b=Math.floor(Math.random()*50);
 let benar=a+b;
 
-let opsi = shuffle([benar,benar+1,benar-1,benar+2].map(String));
+let opsi=[benar,benar+1,benar-1,benar+2].map(String);
+opsi=shuffle(opsi);
 
-bank.push([
-`${a} + ${b} = ?`,
-opsi,
-opsi.indexOf(String(benar))
-]);
+bank.push([`${a}+${b}=?`,opsi,opsi.indexOf(String(benar))]);
 }
-
 return pickUnique(bank,n);
 }
 
 // ================= UMUM =================
 function genUmum(n){
 let bank=[];
-
-const data = [
+const data=[
 ["Ibukota Indonesia","Jakarta"],
 ["Planet terbesar","Jupiter"],
-["Presiden pertama","Soekarno"],
-["Benua terbesar","Asia"],
-["Gunung tertinggi","Everest"]
+["Benua terbesar","Asia"]
 ];
 
 for(let i=0;i<200;i++){
-let d=data[i%data.length];
+let d=data[Math.floor(Math.random()*data.length)];
 
-let opsi = shuffle([d[1],"opsi1","opsi2","opsi3"]);
+let opsi=[d[1],"A","B","C"];
+opsi=shuffle(opsi);
 
-bank.push([
-d[0]+" ?",
-opsi,
-opsi.indexOf(d[1])
-]);
+bank.push([d[0]+" ?",opsi,opsi.indexOf(d[1])]);
 }
-
 return pickUnique(bank,n);
 }
 
-// ================= POLA (SERI) =================
+// ================= POLA =================
 function genPola(n){
 let bank=[];
-
-const cerita = [
+const cerita=[
 ["😴","🚿","🍞","🏃"],
 ["🌱","💧","🌿","🌾"],
-["🛒","🍳","🍽️","😋"],
-["📚","📝","🎓","🎉"]
+["🛒","🍳","🍽️","😋"]
 ];
 
-for(let i=0;i<200;i++){
-let c = cerita[i%cerita.length];
-let acak = shuffle([...c]);
+for(let i=0;i<300;i++){
+let c=cerita[Math.floor(Math.random()*cerita.length)];
+let acak=shuffle([...c]);
+let benar=c.join("");
 
-let benar = c.join("");
-let opsi = shuffle([
+let opsi=[
 benar,
 shuffle([...c]).join(""),
 shuffle([...c]).join(""),
 shuffle([...c]).join("")
-]);
+];
+
+opsi=shuffle(opsi);
 
 bank.push([
-"Susun urutan benar:<br>"+acak.join(" ➜ "),
+"Susun urutan:<br>"+acak.join(" ➜ "),
 opsi,
 opsi.indexOf(benar)
 ]);
 }
-
 return pickUnique(bank,n);
 }
 
-// ================= RUANG (KUBUS) =================
+// ================= RUANG =================
 function genRuang(n){
 let bank=[];
-
 for(let i=0;i<100;i++){
 let opsi=["4","6","8","12"];
-
 bank.push([
-"<div style='width:60px;height:60px;background:linear-gradient(45deg,#aaa,#333);transform:rotateX(30deg) rotateY(30deg);margin:auto'></div><br>Jumlah sisi kubus?",
+"<div style='width:60px;height:60px;background:linear-gradient(45deg,#aaa,#333);margin:auto'></div><br>Sisi kubus?",
 opsi,
 1
 ]);
 }
-
 return pickUnique(bank,n);
 }
 
 // ================= BENTUK =================
 function genBentuk(n){
 let bank=[];
-
 for(let i=0;i<100;i++){
-let opsi = ["circle","square","triangle","cube"];
+let opsi=["Lingkaran","Segitiga","Persegi","Kubus"];
+opsi=shuffle(opsi);
 
 bank.push([
-"Pilih bentuk segitiga:",
+"Bentuk dengan 3 sisi?",
 opsi,
-2
+opsi.indexOf("Segitiga")
 ]);
 }
-
 return pickUnique(bank,n);
 }
 
 // ================= INIT =================
-let data = [
+let data=[
 genBahasa(50),
 genHitung(31),
 genUmum(40),
@@ -186,7 +184,7 @@ let sub=0,q=0,time=420,benar=0;
 
 // ================= LOAD =================
 function load(){
-document.getElementById("judul").innerText =
+document.getElementById("judul").innerText=
 config[sub].nama+" ("+(q+1)+"/"+config[sub].jumlah+")";
 
 let soal=data[sub][q];
@@ -196,7 +194,6 @@ let html="";
 soal[1].forEach((o,i)=>{
 html+=`<button onclick="jawab(${i})">${String.fromCharCode(65+i)}. ${o}</button>`;
 });
-
 document.getElementById("opsi").innerHTML=html;
 }
 
@@ -238,3 +235,6 @@ else load();
 load();
 
 </script>
+
+</body>
+</html>
